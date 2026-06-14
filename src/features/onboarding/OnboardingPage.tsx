@@ -60,6 +60,7 @@ export function OnboardingPage() {
   const [selected, dispatch] = useReducer(selectionReducer, new Set<string>())
   const [step, setStep] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(false)
   const save = useSaveUserSources()
 
   if (isLoading) return <p className="p-6">Carregando…</p>
@@ -76,9 +77,15 @@ export function OnboardingPage() {
       return
     }
     setSaving(true)
-    await save.mutateAsync([...selected])
-    await new Promise((r) => setTimeout(r, 1200))
-    navigate('/painel')
+    setSaveError(false)
+    try {
+      await save.mutateAsync([...selected])
+      await new Promise((r) => setTimeout(r, 1200))
+      navigate('/painel')
+    } catch {
+      setSaving(false)
+      setSaveError(true)
+    }
   }
 
   return (
@@ -96,6 +103,9 @@ export function OnboardingPage() {
         ))}
         {sources.length === 0 && <p className="text-sm text-slate-500">Nada por aqui ainda.</p>}
       </div>
+      {saveError && (
+        <p className="text-sm text-red-600">Não foi possível salvar. Tente de novo.</p>
+      )}
       <div className="mt-auto flex gap-2">
         {step > 0 && (
           <button
