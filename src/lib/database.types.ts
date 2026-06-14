@@ -1,3 +1,6 @@
+// Gerado pelo Supabase CLI. Regenere com `npm run gen:types`.
+// NÃO use a CLI 2.106.0 para gerar: tem regressão que exige token de
+// plataforma mesmo com --local. O script usa supabase@2.95.0 (funciona offline).
 export type Json =
   | string
   | number
