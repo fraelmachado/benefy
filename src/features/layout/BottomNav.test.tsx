@@ -4,9 +4,10 @@ import { renderWithProviders } from '../../test/renderWithProviders'
 import { BottomNav } from './BottomNav'
 
 describe('BottomNav', () => {
-  it('tem links para Painel e Buscar', () => {
+  it('tem links para Painel, Buscar e Perfil', () => {
     renderWithProviders(<BottomNav />, { route: '/painel' })
     expect(screen.getByRole('link', { name: /painel/i })).toHaveAttribute('href', '/painel')
     expect(screen.getByRole('link', { name: /buscar/i })).toHaveAttribute('href', '/buscar')
+    expect(screen.getByRole('link', { name: /perfil/i })).toHaveAttribute('href', '/perfil')
   })
 })

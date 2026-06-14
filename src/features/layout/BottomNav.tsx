@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 const items = [
   { to: '/painel', label: 'Painel', emoji: '🏠' },
   { to: '/buscar', label: 'Buscar', emoji: '🔎' },
+  { to: '/perfil', label: 'Perfil', emoji: '👤' },
 ]
 
 export function BottomNav() {
