@@ -1,6 +1,3 @@
-// Gerado pelo Supabase CLI. Regenere com `npm run gen:types`.
-// NÃO use a CLI 2.106.0 para gerar: tem regressão que exige token de
-// plataforma mesmo com --local. O script usa supabase@2.95.0 (funciona offline).
 export type Json =
   | string
   | number
@@ -318,6 +315,7 @@ export type Database = {
     }
     Functions: {
       is_admin: { Args: never; Returns: boolean }
+      replace_user_sources: { Args: { item_ids: string[] }; Returns: undefined }
     }
     Enums: {
       benefit_category:
