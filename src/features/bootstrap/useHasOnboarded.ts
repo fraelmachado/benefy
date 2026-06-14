@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 
-export function useHasOnboarded(enabled: boolean) {
+export function useHasOnboarded(userId: string | undefined) {
   return useQuery({
-    queryKey: ['has_onboarded'],
-    enabled,
+    queryKey: ['has_onboarded', userId],
+    enabled: !!userId,
     queryFn: async () => {
       const { count, error } = await supabase
         .from('user_sources')

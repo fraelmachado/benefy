@@ -13,7 +13,7 @@ vi.mock('../auth/AuthProvider', () => ({
   useSession: () => sessionValue,
 }))
 
-let hasOnboarded: { data: boolean | undefined; isLoading: boolean }
+let hasOnboarded: { data: boolean | undefined; isLoading: boolean; error: unknown }
 vi.mock('./useHasOnboarded', () => ({
   useHasOnboarded: () => hasOnboarded,
 }))
@@ -25,22 +25,30 @@ beforeEach(() => navigateMock.mockReset())
 describe('BootstrapRoute', () => {
   it('manda pro onboarding quando não há seleção', async () => {
     sessionValue = { session: { user: { id: 'x' } }, loading: false }
-    hasOnboarded = { data: false, isLoading: false }
+    hasOnboarded = { data: false, isLoading: false, error: null }
     renderWithProviders(<BootstrapRoute />)
     await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/onboarding', { replace: true }))
   })
 
   it('manda pro painel quando já fez onboarding', async () => {
     sessionValue = { session: { user: { id: 'x' } }, loading: false }
-    hasOnboarded = { data: true, isLoading: false }
+    hasOnboarded = { data: true, isLoading: false, error: null }
     renderWithProviders(<BootstrapRoute />)
     await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/painel', { replace: true }))
   })
 
   it('mostra carregando enquanto a sessão inicializa', () => {
     sessionValue = { session: null, loading: true }
-    hasOnboarded = { data: undefined, isLoading: true }
+    hasOnboarded = { data: undefined, isLoading: true, error: null }
     renderWithProviders(<BootstrapRoute />)
     expect(screen.getByText(/preparando/i)).toBeInTheDocument()
+  })
+
+  it('mostra erro com retry quando a checagem falha', async () => {
+    sessionValue = { session: { user: { id: 'x' } }, loading: false }
+    hasOnboarded = { data: undefined, isLoading: false, error: new Error('x') }
+    renderWithProviders(<BootstrapRoute />)
+    expect(await screen.findByText(/algo deu errado/i)).toBeInTheDocument()
+    expect(navigateMock).not.toHaveBeenCalled()
   })
 })
