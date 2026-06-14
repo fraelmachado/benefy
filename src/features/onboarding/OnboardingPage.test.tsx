@@ -9,9 +9,18 @@ vi.mock('react-router-dom', async (orig) => {
   return { ...actual, useNavigate: () => navigateMock }
 })
 
+vi.mock('../auth/AuthProvider', () => ({
+  useSession: () => ({ session: { user: { id: 'u1' } }, loading: false }),
+}))
+
 const saveMutate = vi.fn()
 vi.mock('./useSaveUserSources', () => ({
   useSaveUserSources: () => ({ mutateAsync: saveMutate, isPending: false }),
+}))
+
+let existing: { data: string[] | undefined; isLoading: boolean }
+vi.mock('./useUserSources', () => ({
+  useUserSources: () => existing,
 }))
 
 const grouped: GroupedSources = {
@@ -40,6 +49,7 @@ beforeEach(() => {
   navigateMock.mockReset()
   saveMutate.mockReset()
   saveMutate.mockResolvedValue(undefined)
+  existing = { data: [], isLoading: false }
 })
 
 import { OnboardingPage } from './OnboardingPage'
@@ -47,21 +57,23 @@ import { OnboardingPage } from './OnboardingPage'
 describe('OnboardingPage', () => {
   it('navega pelos 3 passos, salva a seleção e vai pro painel', async () => {
     renderWithProviders(<OnboardingPage />)
-
-    // Passo 1: cartões
     fireEvent.click(screen.getByText('Itaú'))
     fireEvent.click(screen.getByRole('button', { name: /black/i }))
     fireEvent.click(screen.getByRole('button', { name: /avançar/i }))
-
-    // Passo 2: operadora
     fireEvent.click(screen.getByText('Claro'))
     fireEvent.click(screen.getByRole('button', { name: /pós/i }))
     fireEvent.click(screen.getByRole('button', { name: /avançar/i }))
-
-    // Passo 3: fidelidade -> concluir
     fireEvent.click(screen.getByRole('button', { name: /concluir/i }))
-
     await waitFor(() => expect(saveMutate).toHaveBeenCalledWith(expect.arrayContaining(['i1', 'i2'])))
     await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/painel'), { timeout: 2500 })
+  })
+
+  it('pré-preenche a seleção existente (modo edição) e salva sem nova escolha', async () => {
+    existing = { data: ['i1', 'i2'], isLoading: false }
+    renderWithProviders(<OnboardingPage />)
+    fireEvent.click(screen.getByRole('button', { name: /avançar/i }))
+    fireEvent.click(screen.getByRole('button', { name: /avançar/i }))
+    fireEvent.click(screen.getByRole('button', { name: /concluir/i }))
+    await waitFor(() => expect(saveMutate).toHaveBeenCalledWith(expect.arrayContaining(['i1', 'i2'])))
   })
 })

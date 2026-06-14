@@ -2,6 +2,7 @@ export type SelectionState = Set<string>
 
 export type SelectionAction =
   | { type: 'toggle'; itemId: string }
+  | { type: 'set'; ids: string[] }
   | { type: 'reset' }
 
 export function selectionReducer(
@@ -15,6 +16,8 @@ export function selectionReducer(
       else next.add(action.itemId)
       return next
     }
+    case 'set':
+      return new Set(action.ids)
     case 'reset':
       return new Set()
   }

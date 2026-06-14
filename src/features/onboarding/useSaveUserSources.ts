@@ -12,6 +12,7 @@ export function useSaveUserSources() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my_benefits'] })
       queryClient.invalidateQueries({ queryKey: ['has_onboarded'] })
+      queryClient.invalidateQueries({ queryKey: ['user_sources'] })
     },
   })
 }

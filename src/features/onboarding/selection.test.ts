@@ -29,4 +29,10 @@ describe('selectionReducer', () => {
     expect(s.has('b')).toBe(false)
     expect(next.has('b')).toBe(true)
   })
+
+  it('set substitui o estado pelos ids fornecidos', () => {
+    let s = new Set(['x'])
+    s = selectionReducer(s, { type: 'set', ids: ['a', 'b'] })
+    expect([...s].sort()).toEqual(['a', 'b'])
+  })
 })

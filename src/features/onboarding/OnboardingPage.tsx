@@ -1,9 +1,11 @@
-import { useReducer, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSources } from './useSources'
 import { selectionReducer } from './selection'
 import { useSaveUserSources } from './useSaveUserSources'
 import { TransitionScreen } from './TransitionScreen'
+import { useSession } from '../auth/AuthProvider'
+import { useUserSources } from './useUserSources'
 import type { Source, SourceKind } from './types'
 
 const STEPS: { kinds: SourceKind[]; title: string; cta: string }[] = [
@@ -56,6 +58,8 @@ function SourceBlock({
 
 export function OnboardingPage() {
   const navigate = useNavigate()
+  const { session } = useSession()
+  const { data: existing, isLoading: loadingExisting } = useUserSources(session?.user.id)
   const { data, isLoading, error } = useSources()
   const [selected, dispatch] = useReducer(selectionReducer, new Set<string>())
   const [step, setStep] = useState(0)
@@ -63,7 +67,15 @@ export function OnboardingPage() {
   const [saveError, setSaveError] = useState(false)
   const save = useSaveUserSources()
 
-  if (isLoading) return <p className="p-6">Carregando…</p>
+  const inited = useRef(false)
+  useEffect(() => {
+    if (!inited.current && existing) {
+      dispatch({ type: 'set', ids: existing })
+      inited.current = true
+    }
+  }, [existing])
+
+  if (isLoading || loadingExisting) return <p className="p-6">Carregando…</p>
   if (error) return <p className="p-6 text-red-600">Erro ao carregar o catálogo.</p>
   if (saving) return <TransitionScreen />
 
