@@ -36,7 +36,7 @@ describe('my_benefits', () => {
     expect(ids).toContain(mine.benefitId)
     expect(ids).not.toContain(other.benefitId)
     const row = data!.find((r) => r.id === mine.benefitId)
-    expect(row!.via).toBe('Black')
+    expect(row!.via).toEqual(['Black'])
   })
 
   it('não vaza benefícios de um usuário para outro', async () => {

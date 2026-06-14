@@ -120,13 +120,6 @@ export type Database = {
             foreignKeyName: "benefit_sources_source_item_id_fkey"
             columns: ["source_item_id"]
             isOneToOne: false
-            referencedRelation: "my_benefits"
-            referencedColumns: ["via_source_item_id"]
-          },
-          {
-            foreignKeyName: "benefit_sources_source_item_id_fkey"
-            columns: ["source_item_id"]
-            isOneToOne: false
             referencedRelation: "source_items"
             referencedColumns: ["id"]
           },
@@ -278,13 +271,6 @@ export type Database = {
             foreignKeyName: "user_sources_source_item_id_fkey"
             columns: ["source_item_id"]
             isOneToOne: false
-            referencedRelation: "my_benefits"
-            referencedColumns: ["via_source_item_id"]
-          },
-          {
-            foreignKeyName: "user_sources_source_item_id_fkey"
-            columns: ["source_item_id"]
-            isOneToOne: false
             referencedRelation: "source_items"
             referencedColumns: ["id"]
           },
@@ -307,8 +293,7 @@ export type Database = {
           title: string | null
           uf: string | null
           valid_until: string | null
-          via: string | null
-          via_source_item_id: string | null
+          via: string[] | null
         }
         Relationships: []
       }
