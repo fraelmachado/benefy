@@ -41,4 +41,14 @@ describe('Perfil', () => {
     renderWithProviders(<Perfil />)
     expect(screen.getByRole('link', { name: /editar minhas fontes/i })).toHaveAttribute('href', '/onboarding')
   })
+
+  it('falha no envio não quebra nem mostra confirmação', async () => {
+    sessionValue = { session: { user: { id: 'u1', is_anonymous: true, email: null } }, loading: false }
+    linkMutate.mockRejectedValue(new Error('smtp down'))
+    renderWithProviders(<Perfil />)
+    fireEvent.change(screen.getByRole('textbox', { name: /e-mail/i }), { target: { value: 'a@b.com' } })
+    fireEvent.click(screen.getByRole('button', { name: /salvar meu acesso/i }))
+    await waitFor(() => expect(linkMutate).toHaveBeenCalledWith('a@b.com'))
+    expect(screen.queryByText(/enviamos um link/i)).not.toBeInTheDocument()
+  })
 })

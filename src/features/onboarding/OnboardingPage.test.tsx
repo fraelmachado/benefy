@@ -18,7 +18,7 @@ vi.mock('./useSaveUserSources', () => ({
   useSaveUserSources: () => ({ mutateAsync: saveMutate, isPending: false }),
 }))
 
-let existing: { data: string[] | undefined; isLoading: boolean }
+let existing: { data: string[] | undefined; isLoading: boolean; error?: unknown }
 vi.mock('./useUserSources', () => ({
   useUserSources: () => existing,
 }))
@@ -49,7 +49,7 @@ beforeEach(() => {
   navigateMock.mockReset()
   saveMutate.mockReset()
   saveMutate.mockResolvedValue(undefined)
-  existing = { data: [], isLoading: false }
+  existing = { data: [], isLoading: false, error: null }
 })
 
 import { OnboardingPage } from './OnboardingPage'
@@ -75,5 +75,12 @@ describe('OnboardingPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /avançar/i }))
     fireEvent.click(screen.getByRole('button', { name: /concluir/i }))
     await waitFor(() => expect(saveMutate).toHaveBeenCalledWith(expect.arrayContaining(['i1', 'i2'])))
+  })
+
+  it('mostra erro e não salva quando falha ao carregar as fontes existentes', () => {
+    existing = { data: undefined, isLoading: false, error: new Error('x') } as unknown as typeof existing
+    renderWithProviders(<OnboardingPage />)
+    expect(screen.getByText(/erro ao carregar seus dados/i)).toBeInTheDocument()
+    expect(saveMutate).not.toHaveBeenCalled()
   })
 })

@@ -13,8 +13,12 @@ export function Perfil() {
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    await link.mutateAsync(email)
-    setSent(true)
+    try {
+      await link.mutateAsync(email)
+      setSent(true)
+    } catch {
+      // erro exibido via link.isError
+    }
   }
 
   return (

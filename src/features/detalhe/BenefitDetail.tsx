@@ -2,6 +2,16 @@ import { Link, useParams } from 'react-router-dom'
 import { useSession } from '../auth/AuthProvider'
 import { useBenefit } from '../benefits/useBenefit'
 
+function safeHttpUrl(url: string | null): string | null {
+  if (!url) return null
+  try {
+    const u = new URL(url)
+    return u.protocol === 'http:' || u.protocol === 'https:' ? url : null
+  } catch {
+    return null
+  }
+}
+
 export function BenefitDetail() {
   const { id } = useParams()
   const { session } = useSession()
@@ -19,6 +29,7 @@ export function BenefitDetail() {
   }
 
   const steps = (benefit.steps ?? '').split('\n').map((s) => s.trim()).filter(Boolean)
+  const actionUrl = safeHttpUrl(benefit.action_url)
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-4 p-4">
@@ -42,9 +53,9 @@ export function BenefitDetail() {
         </div>
       )}
 
-      {benefit.action_url && (
+      {actionUrl && (
         <a
-          href={benefit.action_url}
+          href={actionUrl}
           target="_blank"
           rel="noreferrer"
           className="mt-2 rounded-lg bg-slate-800 px-4 py-3 text-center font-medium text-white"

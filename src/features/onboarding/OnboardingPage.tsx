@@ -59,7 +59,7 @@ function SourceBlock({
 export function OnboardingPage() {
   const navigate = useNavigate()
   const { session } = useSession()
-  const { data: existing, isLoading: loadingExisting } = useUserSources(session?.user.id)
+  const { data: existing, isLoading: loadingExisting, error: existingError } = useUserSources(session?.user.id)
   const { data, isLoading, error } = useSources()
   const [selected, dispatch] = useReducer(selectionReducer, new Set<string>())
   const [step, setStep] = useState(0)
@@ -76,7 +76,7 @@ export function OnboardingPage() {
   }, [existing])
 
   if (isLoading || loadingExisting) return <p className="p-6">Carregando…</p>
-  if (error) return <p className="p-6 text-red-600">Erro ao carregar o catálogo.</p>
+  if (error || existingError) return <p className="p-6 text-red-600">Erro ao carregar seus dados.</p>
   if (saving) return <TransitionScreen />
 
   const current = STEPS[step]

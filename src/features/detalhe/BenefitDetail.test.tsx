@@ -42,4 +42,11 @@ describe('BenefitDetail', () => {
     renderWithProviders(<BenefitDetail />, { route: '/beneficio/b1' })
     expect(screen.getByText(/não encontrado/i)).toBeInTheDocument()
   })
+
+  it('não renderiza ação com esquema perigoso (javascript:)', () => {
+    const evil = { ...b, action_url: 'javascript:alert(1)', action_label: 'Clique' }
+    result = { data: [evil], isLoading: false, error: null }
+    renderWithProviders(<BenefitDetail />, { route: '/beneficio/b1' })
+    expect(screen.queryByRole('link', { name: /clique/i })).not.toBeInTheDocument()
+  })
 })
