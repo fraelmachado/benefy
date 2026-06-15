@@ -702,3 +702,29 @@ join (values
   ('visa-signature-protecao-compra',           'visa','signature')
 ) as t(slug, card_brand, card_level) on t.slug = b.slug
 on conflict do nothing;
+
+-- ===== BENEFIT_LOCATIONS (Task 5 — locais de resgate) =====
+insert into benefit_locations (benefit_id, name, scope, country, region, uf, city, airport_code, terminal, lat, lng, geolocation_status)
+select b.id, t.name, t.scope::location_scope, t.country, t.region, t.uf, t.city,
+       t.airport_code, t.terminal, t.lat, t.lng, t.geolocation_status::geolocation_status
+from benefits b
+join (values
+  ('nubank-ultravioleta-lounge-gru', 'Nubank Ultravioleta Lounge — GRU', 'airport', 'BR', 'Sudeste', 'SP', 'Guarulhos', 'GRU', 'Terminal 3', null::float8, null::float8, 'needs_geocoding'),
+  ('nubank-ultravioleta-priority-pass', 'Rede Priority Pass', 'global_network', 'GLOBAL', null, null, null, null, null, null::float8, null::float8, 'not_applicable'),
+  ('nubank-ultravioleta-nu-viagens', 'App Nubank / Nu Viagens', 'online', 'BR', null, null, null, null, null, null::float8, null::float8, 'not_applicable'),
+  ('inter-prime-salas-vip', 'Sala VIP Inter — GRU', 'airport', 'BR', 'Sudeste', 'SP', 'Guarulhos', 'GRU', null, null::float8, null::float8, 'needs_geocoding'),
+  ('inter-prime-salas-vip', 'Sala VIP Inter — CWB', 'airport', 'BR', 'Sul', 'PR', 'Curitiba', 'CWB', null, null::float8, null::float8, 'needs_geocoding'),
+  ('inter-prime-salas-vip', 'Sala VIP Inter — CNF', 'airport', 'BR', 'Sudeste', 'MG', 'Confins', 'CNF', null, null::float8, null::float8, 'needs_geocoding'),
+  ('inter-prime-salas-vip', 'Sala VIP Inter — FOR', 'airport', 'BR', 'Nordeste', 'CE', 'Fortaleza', 'FOR', null, null::float8, null::float8, 'needs_geocoding'),
+  ('inter-prime-priority-pass', 'Rede Priority Pass', 'global_network', 'GLOBAL', null, null, null, null, null, null::float8, null::float8, 'not_applicable'),
+  ('inter-loop-cashback-inter-shop', 'Super App Inter / Inter Shop', 'online', 'BR', null, null, null, null, null, null::float8, null::float8, 'not_applicable'),
+  ('inter-duo-gourmet-2-por-1', 'Rede Duo Gourmet', 'global_network', 'BR', null, null, null, null, null, null::float8, null::float8, 'not_applicable'),
+  ('xp-infinite-fast-pass', 'Aeroporto de Guarulhos', 'airport', 'BR', 'Sudeste', 'SP', 'Guarulhos', 'GRU', null, null::float8, null::float8, 'needs_geocoding'),
+  ('xp-legacy-salas-vip-ilimitado', 'Rede global de salas VIP', 'global_network', 'GLOBAL', null, null, null, null, null, null::float8, null::float8, 'not_applicable'),
+  ('xp-private-visa-infinite-privilege-lounge', 'Visa Infinite Privilege Lounge — GRU', 'airport', 'BR', 'Sudeste', 'SP', 'Guarulhos', 'GRU', null, null::float8, null::float8, 'needs_geocoding'),
+  ('visa-infinite-fast-pass', 'Visa Infinite Fast Pass — GRU', 'airport', 'BR', 'Sudeste', 'SP', 'Guarulhos', 'GRU', 'Terminais 2 e 3', null::float8, null::float8, 'needs_geocoding'),
+  ('visa-infinite-fast-pass', 'Visa Infinite Fast Pass — RIOgaleão', 'airport', 'BR', 'Sudeste', 'RJ', 'Rio de Janeiro', 'GIG', null, null::float8, null::float8, 'needs_geocoding'),
+  ('visa-infinite-airport-companion', 'Visa Airport Companion', 'global_network', 'GLOBAL', null, null, null, null, null, null::float8, null::float8, 'not_applicable'),
+  ('visa-infinite-protecao-compra', 'Portal de Benefícios Visa', 'online', 'BR', null, null, null, null, null, null::float8, null::float8, 'not_applicable')
+) as t(slug, name, scope, country, region, uf, city, airport_code, terminal, lat, lng, geolocation_status)
+  on t.slug = b.slug;
