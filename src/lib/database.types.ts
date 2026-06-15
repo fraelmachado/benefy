@@ -199,20 +199,29 @@ export type Database = {
       }
       source_items: {
         Row: {
+          card_brand: string | null
+          card_level: string | null
           id: string
           label: string
+          pluggy_product: string | null
           sort_order: number
           source_id: string
         }
         Insert: {
+          card_brand?: string | null
+          card_level?: string | null
           id?: string
           label: string
+          pluggy_product?: string | null
           sort_order?: number
           source_id: string
         }
         Update: {
+          card_brand?: string | null
+          card_level?: string | null
           id?: string
           label?: string
+          pluggy_product?: string | null
           sort_order?: number
           source_id?: string
         }
@@ -229,26 +238,41 @@ export type Database = {
       sources: {
         Row: {
           active: boolean
+          connector_type: string | null
+          country: string
           id: string
+          institution_url: string | null
           kind: Database["public"]["Enums"]["source_kind"]
           logo_url: string | null
           name: string
+          pluggy_connector_id: number | null
+          primary_color: string | null
           sort_order: number
         }
         Insert: {
           active?: boolean
+          connector_type?: string | null
+          country?: string
           id?: string
+          institution_url?: string | null
           kind: Database["public"]["Enums"]["source_kind"]
           logo_url?: string | null
           name: string
+          pluggy_connector_id?: number | null
+          primary_color?: string | null
           sort_order?: number
         }
         Update: {
           active?: boolean
+          connector_type?: string | null
+          country?: string
           id?: string
+          institution_url?: string | null
           kind?: Database["public"]["Enums"]["source_kind"]
           logo_url?: string | null
           name?: string
+          pluggy_connector_id?: number | null
+          primary_color?: string | null
           sort_order?: number
         }
         Relationships: []
