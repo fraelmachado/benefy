@@ -164,6 +164,18 @@ grant select on my_benefits to authenticated;
 
 ## 5. Seed (`seed.sql` reescrito)
 
+### 5.0 Limpeza do catálogo demo (preâmbulo obrigatório)
+As linhas demo (Itaú/Claro/Livelo e seus benefícios) foram inseridas **sem `slug`** (UUIDs fixos), então **não colidem** com o `ON CONFLICT (slug)` do catálogo real e sobreviveriam ao lado dele. O seed precisa ser **autoritativo**: o catálogo passa a ser exatamente o que está no `seed.sql`. Preâmbulo no topo, em ordem de dependência:
+
+```sql
+-- Catálogo é autoritativo: zera o demo antes de inserir o real.
+truncate table benefit_card_tiers, benefit_locations, benefit_sources, benefits restart identity cascade;
+truncate table source_items restart identity cascade;  -- cascata remove user_sources demo
+truncate table sources restart identity cascade;
+```
+> `truncate ... cascade` em `source_items` remove `user_sources` de usuários demo/anônimos (aceitável — são seleções de teste). `profiles`/`auth.users` não são tocados. Em produção o efeito é o mesmo: limpa o catálogo demo aplicado no M5 e o substitui pelo real.
+
+### 5.1 Conteúdo
 Transcrição do catálogo do doc, tudo por `slug` + `ON CONFLICT (slug) DO UPDATE`:
 
 - **`sources`** (3): `nubank`, `inter`, `xp` — `kind='card'`, com `institution_url`, `country='BR'`.
@@ -197,3 +209,4 @@ Transcrição do catálogo do doc, tudo por `slug` + `ON CONFLICT (slug) DO UPDA
 - **Recriar enum `benefit_category`** quebra dependências (view, constante TS). Mitigação: dropar a view antes, recriar depois; atualizar `CATEGORIES`; regenerar types.
 - **`card_brand`/`card_level` inconsistentes** entre seed e `benefit_card_tiers` → benefício não herda. Mitigação: vocabulário controlado documentado no topo do seed (brands: `mastercard`/`visa`; levels: `gold`/`platinum`/`black`/`signature`/`infinite`), e teste de integração cobrindo a herança.
 - **Drift seed local × prod.** Mitigação: mesmo `seed.sql` aplicado nos dois ambientes; slugs garantem idempotência.
+- **Catálogo demo sobrevivente.** Linhas demo sem `slug` não colidem no `ON CONFLICT` e ficariam órfãs no banco. Mitigação: preâmbulo `truncate ... cascade` (seção 5.0) torna o seed autoritativo; teste verifica que pós-seed só existem `sources` reais (Nubank/Inter/XP) e nenhuma demo (Itaú/Claro/Livelo).
