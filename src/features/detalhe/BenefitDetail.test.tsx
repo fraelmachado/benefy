@@ -49,4 +49,34 @@ describe('BenefitDetail', () => {
     renderWithProviders(<BenefitDetail />, { route: '/beneficio/b1' })
     expect(screen.queryByRole('link', { name: /clique/i })).not.toBeInTheDocument()
   })
+
+  it('mostra a fonte oficial (nome) e a data de coleta', () => {
+    const withSource: MyBenefit = {
+      ...b, source_url: 'https://www.visa.com.br/beneficios', source_name: 'Visa Brasil',
+      observed_at: '2026-06-15',
+    }
+    result = { data: [withSource], isLoading: false, error: null }
+    renderWithProviders(<BenefitDetail />, { route: '/beneficio/b1' })
+    const src = screen.getByRole('link', { name: /visa brasil/i })
+    expect(src).toHaveAttribute('href', 'https://www.visa.com.br/beneficios')
+    expect(screen.getByText(/coletadas em/i)).toBeInTheDocument()
+    expect(screen.getByText(/15\/06\/2026/)).toBeInTheDocument()
+  })
+
+  it('oculta o bloco de fonte quando não há source_url', () => {
+    result = { data: [{ ...b, source_url: null, source_name: null, observed_at: null }], isLoading: false, error: null }
+    renderWithProviders(<BenefitDetail />, { route: '/beneficio/b1' })
+    expect(screen.queryByText(/coletadas em/i)).not.toBeInTheDocument()
+  })
+
+  it('lista "Da mesma fonte" com correlatos e linka para o detalhe', () => {
+    const cur: MyBenefit = { ...b, id: 'b1', source_url: 'https://visa.com/x' }
+    const sib: MyBenefit = { ...b, id: 'b2', title: 'Outro Visa', source_url: 'https://visa.com/x' }
+    const other: MyBenefit = { ...b, id: 'b3', title: 'Mastercard X', source_url: 'https://mc.com/y' }
+    result = { data: [cur, sib, other], isLoading: false, error: null }
+    renderWithProviders(<BenefitDetail />, { route: '/beneficio/b1' })
+    const link = screen.getByRole('link', { name: /outro visa/i })
+    expect(link).toHaveAttribute('href', '/beneficio/b2')
+    expect(screen.queryByRole('link', { name: /mastercard x/i })).not.toBeInTheDocument()
+  })
 })
