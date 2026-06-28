@@ -28,6 +28,7 @@
 - **Modify** `supabase/seed.sql` — incluir `source_category` no insert de `sources` e no `on conflict do update set`.
 - **Create** `supabase/migrations/0013_my_benefits_origens.sql` — recria `my_benefits` com `origins`, `networks` e `benefit_source`.
 - **Modify** `src/features/benefits/types.ts` — `SourceCategory`, `BenefitSourceKind`, `BenefitOrigin`, `BenefitNetwork`; estender `MyBenefit`.
+- **Modify** `src/features/benefits/useMyBenefits.ts` — o `select` é hard-coded por coluna; incluir `benefit_source, origins, networks` (senão os campos novos voltam `undefined` em runtime apesar do tipo).
 - **Modify** `src/lib/database.types.ts` — regenerado via `npm run gen:types` (mecânico).
 - **Create** `tests/source_category.integration.test.ts` — contrato do enum/coluna/backfill.
 - **Create** `tests/my_benefits_origens.integration.test.ts` — contrato da view (origins/networks/benefit_source).
@@ -45,7 +46,7 @@
 - Consumes: tabela `sources` (colunas `slug`, `kind`, `name`, …); seed atual com 3 fontes (`nubank`/`inter`/`xp`, todas `kind='card'`).
 - Produces: enum Postgres `source_category` (7 valores) + coluna `sources.source_category source_category not null`. Todas as fontes do catálogo passam a ter `source_category='bank_card'`. Consumido pela view na Task 2 (`s.source_category`).
 
-**Por que migration e seed juntos:** o `set not null` faz o `seed.sql` falhar se o insert de `sources` não fornecer `source_category` (no `db reset` o seed roda depois das migrations, sobre tabela vazia, então o backfill do migration pega 0 linhas — quem popula o local/CI é o seed). O backfill no migration existe para a **produção** (linhas já existentes). Ambos são necessários.
+**Por que migration e seed juntos:** o `default 'bank_card'` cobre o NOT NULL para qualquer writer (prod, teste, admin) — mas o seed de catálogo deve setar `source_category` **explicitamente** para não depender do default (deixa a intenção clara e já prepara o terreno para futuras fontes não-bancárias, que NÃO devem herdar o default). Por isso as duas mudanças andam juntas nesta task.
 
 - [ ] **Step 1: Escrever o teste que falha**
 
@@ -110,14 +111,17 @@ Create `supabase/migrations/0012_source_category.sql`:
 create type source_category as enum (
   'bank_card','carrier','health','corporate_benefits','loyalty','retail','mall');
 
-alter table sources add column source_category source_category;
-
--- Backfill das fontes existentes (relevante em produção; no db reset pega 0 linhas
--- pois o seed roda depois). As fontes atuais são todas bancos/cartões.
-update sources set source_category = 'bank_card' where source_category is null;
-
-alter table sources alter column source_category set not null;
+-- not null DEFAULT 'bank_card': em produção a coluna é preenchida automaticamente
+-- para todas as fontes existentes (100% do catálogo atual é banco/cartão), e
+-- escritores que ainda não conhecem a coluna (seed de teste, admin SourceForm)
+-- não quebram o NOT NULL — recebem o default. O seed de catálogo (Task 1, Step 4)
+-- ainda seta 'bank_card' explicitamente.
+alter table sources add column source_category source_category not null default 'bank_card';
 ```
+
+> **Por que `default` e não `set not null` puro:** writers existentes inserem em `sources` sem `source_category` — o teste de schema (`tests/catalogo_real_schema.integration.test.ts:32`) e o admin `SourceForm`/`useAdminSources`. Sem default, o NOT NULL os faz falhar. O default mantém o contrato NOT NULL forte sem quebrá-los.
+>
+> **Follow-up (fora do P1):** quando o P4 introduzir fontes não-bancárias, o admin `SourceForm` precisa ganhar o campo `source_category` (senão carrier/health criados pela UI viram `bank_card` silenciosamente), e aí o default pode ser removido. Registrar isso na spec do P2/P4.
 
 - [ ] **Step 4: Atualizar o seed**
 
@@ -165,6 +169,7 @@ git commit -m "feat(p1): taxonomia source_category (enum + coluna + backfill ban
 **Files:**
 - Create: `supabase/migrations/0013_my_benefits_origens.sql`
 - Modify: `src/features/benefits/types.ts`
+- Modify: `src/features/benefits/useMyBenefits.ts` (select hard-coded por coluna)
 - Modify: `src/lib/database.types.ts` (regenerado, mecânico)
 - Test: `tests/my_benefits_origens.integration.test.ts`
 
@@ -345,15 +350,25 @@ E dentro de `MyBenefit`, adicionar os três campos (após `observed_at`, antes d
   via: string[]
 ```
 
-- [ ] **Step 6: Regenerar os tipos do banco e rodar a suíte completa**
+- [ ] **Step 6: Atualizar o `select` do hook consumidor**
+
+`src/features/benefits/useMyBenefits.ts` lista as colunas explicitamente no `.select(...)`; sem isso, PostgREST não retorna os campos novos e eles vêm `undefined` em runtime (apesar do tipo). Adicionar `benefit_source, origins, networks` à string do select:
+
+```ts
+        .select(
+          'id, title, summary, category, scope, uf, steps, partner_name, valid_until, image_url, action_url, action_label, created_at, source_url, source_name, observed_at, benefit_source, origins, networks, via',
+        )
+```
+
+- [ ] **Step 7: Regenerar os tipos do banco e rodar a suíte completa**
 
 Run: `npm run gen:types && npm test`
-Expected: `gen:types` atualiza `src/lib/database.types.ts` com o enum `source_category`, a coluna em `sources` e as colunas novas da view `my_benefits`; `npm test` passa inteiro (nenhuma tela mudou, só o tipo cresceu de forma aditiva).
+Expected: `gen:types` atualiza `src/lib/database.types.ts` com o enum `source_category`, a coluna em `sources` e as colunas novas da view `my_benefits`; `npm test` passa inteiro (nenhuma tela mudou, só o tipo cresceu de forma aditiva e o hook passou a selecionar os campos novos).
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add supabase/migrations/0013_my_benefits_origens.sql src/features/benefits/types.ts src/lib/database.types.ts tests/my_benefits_origens.integration.test.ts
+git add supabase/migrations/0013_my_benefits_origens.sql src/features/benefits/types.ts src/features/benefits/useMyBenefits.ts src/lib/database.types.ts tests/my_benefits_origens.integration.test.ts
 git commit -m "feat(p1): my_benefits projeta origins + benefit_source + networks"
 ```
 
@@ -369,6 +384,8 @@ git commit -m "feat(p1): my_benefits projeta origins + benefit_source + networks
 - §7.2 — manter `partner_name` (secundária) → já projetado, preservado na recriação. ✅
 - §7.4 — `kind` alinhado/depreciado: decisão de execução = **manter `kind` como metadado técnico legado**, `source_category` vira a dimensão de UI (Global Constraints + comentário do migration 0012). ✅
 - §7.5 — sem mudança em `user_sources`/seleção → nenhuma task toca isso. ✅
+
+**Consumidores da view (verificado no código):** só `src/features/benefits/useMyBenefits.ts` faz `.from('my_benefits')` com `select` por coluna → atualizado na Task 2 Step 6. `NOT NULL DEFAULT 'bank_card'` evita quebrar os writers existentes de `sources` (`tests/catalogo_real_schema.integration.test.ts:32` e o admin `SourceForm`/`useAdminSources`, que não enviam `source_category`). Follow-up registrado: P2/P4 devem adicionar o campo ao admin `SourceForm` e remover o default quando surgirem fontes não-bancárias.
 
 **2. Placeholder scan:** sem TBD/TODO; todo SQL e TS estão completos. A única ressalva condicional (slugs `xp-infinite`/`nubank-ultravioleta`) traz o comando exato de verificação e a instrução de ajuste — não é placeholder de implementação.
 
