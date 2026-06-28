@@ -16,13 +16,14 @@ delete from sources where id in (
 --  benefit_card_tiers e benefit_locations abaixo desta linha.)
 
 -- ===== SOURCES =====
-insert into sources (slug, kind, name, sort_order, institution_url, country) values
-  ('nubank', 'card', 'Nubank',      1, 'https://nubank.com.br', 'BR'),
-  ('inter',  'card', 'Banco Inter', 2, 'https://inter.co',      'BR'),
-  ('xp',     'card', 'XP',          3, 'https://www.xpi.com.br','BR')
+insert into sources (slug, kind, name, sort_order, institution_url, country, source_category) values
+  ('nubank', 'card', 'Nubank',      1, 'https://nubank.com.br', 'BR', 'bank_card'),
+  ('inter',  'card', 'Banco Inter', 2, 'https://inter.co',      'BR', 'bank_card'),
+  ('xp',     'card', 'XP',          3, 'https://www.xpi.com.br','BR', 'bank_card')
 on conflict (slug) do update set
   kind = excluded.kind, name = excluded.name, sort_order = excluded.sort_order,
-  institution_url = excluded.institution_url, country = excluded.country;
+  institution_url = excluded.institution_url, country = excluded.country,
+  source_category = excluded.source_category;
 
 -- ===== SOURCE_ITEMS =====
 insert into source_items (slug, source_id, label, display_name, sort_order, card_brand, card_level, product_type, source_url, verification_status) values
