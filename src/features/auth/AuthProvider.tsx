@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-slate-500">Preparando o Benefy…</p>
+        <p className="text-slate-500">Preparando o Mapa de Benefícios…</p>
       </div>
     )
   }

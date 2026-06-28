@@ -24,7 +24,7 @@ export function AdminLogin() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-4 p-6">
-      <h1 className="text-2xl font-bold text-slate-900">Admin Benefy</h1>
+      <h1 className="text-2xl font-bold text-slate-900">Admin · Mapa de Benefícios</h1>
       <form onSubmit={submit} className="flex flex-col gap-3">
         <label className="text-sm font-medium text-slate-700" htmlFor="email">E-mail</label>
         <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)}

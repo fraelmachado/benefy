@@ -6,7 +6,7 @@ export function AdminLayout() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="flex items-center gap-4 border-b border-slate-200 bg-white px-4 py-3">
-        <Link to="/admin" className="font-bold text-slate-900">Admin Benefy</Link>
+        <Link to="/admin" className="font-bold text-slate-900">Admin · Mapa de Benefícios</Link>
         <Link to="/admin/sources" className="text-sm text-slate-600">Fontes</Link>
         <Link to="/admin/benefits" className="text-sm text-slate-600">Benefícios</Link>
         <button

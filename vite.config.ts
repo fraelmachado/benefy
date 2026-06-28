@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: 'Benefy',
-        short_name: 'Benefy',
+        name: 'Mapa de Benefícios',
+        short_name: 'Benefícios',
         description: 'Descubra os benefícios que você já tem.',
         theme_color: '#0f172a',
         background_color: '#ffffff',
