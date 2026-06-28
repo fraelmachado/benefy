@@ -5,7 +5,8 @@
 **Mockup de referência:** `docs/mockups/2026-06-16-benefy-mockups-v3.html` (abrir no navegador)
 
 > **IMPORTANTE — o que este doc trava e o que NÃO trava.**
-> Trava o **sistema visual**: tokens (cor/tipo/espaço/raio/sombra), a anatomia dos componentes e os motivos. **NÃO** trava o conteúdo do mockup — números (ex.: "23 benefícios"), textos de exemplo, listas de cartões e categorias por card são **ilustrativos**. A implementação React puxa dados reais de `my_benefits`/catálogo; nada de copy/contagem do mockup deve ser hard-coded como baseline.
+> Trava a **linguagem visual aprovada**: paleta (cor primária + cores de categoria/origem), o conceito de "passe" e a anatomia dos componentes, raios/sombra/espaçamento e a **escolha da família tipográfica (Onest)**.
+> **NÃO** trava como baseline: (a) a **escala tipográfica** — os tamanhos/pesos/tracking abaixo são um **ponto de partida recomendado**, a serem afinados na implementação (responsividade, acessibilidade/contraste, comprimento de linha, escala fluida); (b) o **conteúdo do mockup** — números (ex.: "23 benefícios"), textos de exemplo, listas de cartões e categorias por card são **ilustrativos**. A implementação React puxa dados reais de `my_benefits`/catálogo; nada de copy/contagem do mockup deve ser hard-coded.
 
 ## 1. Conceito
 
@@ -46,11 +47,12 @@ Mixed                 usar a origem dominante (decisão no plano)
 ```
 
 ### Tipografia — **Onest** (Google Fonts), pesos 400–800
-- Display/títulos de tela: 25–29px, weight 700, `letter-spacing:-.03em`
-- Título do card (`h3`): 18px / 700 / -.02em
-- Corpo: 13.5–14.5px / 400–500 / line-height ~1.5
-- Eyebrow/label: 11.5px / 700 / `.1em` / uppercase / `--muted`
-- Número-herói: até 44–46px / 800 / -.04em
+> A **família (Onest)** é a decisão travada. A **escala abaixo é ponto de partida**, não baseline — afinar na implementação (definir a escala definitiva no `tailwind.config`, com fluid type / breakpoints e checagem de acessibilidade). Tamanhos em px aqui são referência do mockup mobile.
+- Display/títulos de tela: ~25–29px, weight 700, `letter-spacing:-.03em`
+- Título do card (`h3`): ~18px / 700 / -.02em
+- Corpo: ~13.5–14.5px / 400–500 / line-height ~1.5
+- Eyebrow/label: ~11.5px / 700 / `.1em` / uppercase / `--muted`
+- Número-herói: até ~44–46px / 800 / -.04em
 
 ### Espaço, raio, sombra
 ```
