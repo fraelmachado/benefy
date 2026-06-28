@@ -36,6 +36,26 @@ describe('my_benefits projeta origem primária e secundária', () => {
     )).toBe(true)
   })
 
+  it('um benefício card_network agrega origins, networks, benefit_source e via na MESMA linha', async () => {
+    const db = serviceClient()
+    // xp-infinite (visa/infinite) destrava visa-infinite-fast-pass pelo caminho derivado.
+    const { data: item } = await db.from('source_items').select('id').eq('slug', 'xp-infinite').single()
+    const { data: ben } = await db.from('benefits').select('id').eq('slug', 'visa-infinite-fast-pass').single()
+    const { client } = await userClient()
+    await client.rpc('replace_user_sources', { item_ids: [item!.id] })
+
+    const { data, error } = await client
+      .from('my_benefits')
+      .select('id, benefit_source, origins, networks, via')
+      .eq('id', ben!.id)
+      .single()
+    expect(error).toBeNull()
+    expect(data!.benefit_source).toBe('card_network')
+    expect(data!.origins).toContainEqual({ provider: 'XP', category: 'bank_card' })
+    expect(data!.networks).toContainEqual({ brand: 'visa', level: 'infinite' })
+    expect(Array.isArray(data!.via) && data!.via.length).toBeGreaterThan(0)
+  })
+
   it('networks é [] para benefício do caminho direto (sem bandeira)', async () => {
     const db = serviceClient()
     const { data: item } = await db.from('source_items').select('id').eq('slug', 'nubank-ultravioleta-black').single()
