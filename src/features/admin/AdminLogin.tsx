@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { Button } from '../../ui/Button'
 
 export function AdminLogin() {
   const navigate = useNavigate()
@@ -24,19 +25,36 @@ export function AdminLogin() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-4 p-6">
-      <h1 className="text-2xl font-bold text-slate-900">Admin · Mapa de Benefícios</h1>
-      <form onSubmit={submit} className="flex flex-col gap-3">
-        <label className="text-sm font-medium text-slate-700" htmlFor="email">E-mail</label>
-        <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-          className="rounded-lg border border-slate-300 px-3 py-2" />
-        <label className="text-sm font-medium text-slate-700" htmlFor="password">Senha</label>
-        <input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
-          className="rounded-lg border border-slate-300 px-3 py-2" />
-        {error && <p className="text-sm text-red-600">Não foi possível entrar. Verifique e-mail e senha.</p>}
-        <button type="submit" disabled={loading}
-          className="rounded-lg bg-slate-800 px-4 py-2 font-medium text-white disabled:opacity-60">
+      <h1 style={{ fontSize: 'var(--fz-h1)', fontWeight: 700, letterSpacing: '-.03em', margin: 0 }}>
+        Admin · Mapa de Benefícios
+      </h1>
+      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s2)' }}>
+        <label className="lbl" htmlFor="email" style={{ margin: 0 }}>
+          E-mail
+        </label>
+        <label className="input">
+          <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        </label>
+        <label className="lbl" htmlFor="password" style={{ margin: 'var(--s2) 0 0' }}>
+          Senha
+        </label>
+        <label className="input">
+          <input
+            id="password"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
+        {error && (
+          <p style={{ fontSize: 14, color: 'var(--warn)' }}>
+            Não foi possível entrar. Verifique e-mail e senha.
+          </p>
+        )}
+        <Button type="submit" disabled={loading}>
           Entrar
-        </button>
+        </Button>
       </form>
     </div>
   )
