@@ -61,16 +61,21 @@ beforeEach(() => {
 import { OnboardingPage } from './OnboardingPage'
 
 describe('OnboardingPage (wizard híbrido)', () => {
-  it('mostra a 1ª categoria; gate "Tenho" revela provedores; seleciona e conclui', async () => {
+  it('mostra a 1ª categoria; gate "Tenho" revela provedores (chips inline); seleciona e conclui', async () => {
     renderWithProviders(<OnboardingPage />)
+    expect(screen.getByText(/Passo 1 de 2/i)).toBeInTheDocument()
     expect(screen.getByText(/Bancos & cartões/)).toBeInTheDocument()
     // provedores escondidos até "Tenho"
     expect(screen.queryByText('Itaú')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /^tenho$/i }))
-    fireEvent.click(screen.getByText('Itaú'))
+    // fim do accordion: o nome do provedor NÃO é mais um botão de expandir,
+    // e a variante já está visível inline (sem clicar para abrir)
+    expect(screen.getByText('Itaú')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Itaú' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /black/i }))
     fireEvent.click(screen.getByRole('button', { name: /avançar/i }))
     // passo 2: fidelidade — diz "Não tenho" e conclui
+    expect(screen.getByText(/Passo 2 de 2/i)).toBeInTheDocument()
     expect(screen.getByText(/Fidelidade & pontos/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /não tenho/i }))
     fireEvent.click(screen.getByRole('button', { name: /concluir/i }))

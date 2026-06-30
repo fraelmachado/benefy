@@ -15,7 +15,7 @@ import { Input } from '../../ui/Input'
 
 type Gate = 'yes' | 'no' | undefined
 
-function SourceBlock({
+function ProviderSection({
   source,
   selected,
   onToggle,
@@ -24,32 +24,24 @@ function SourceBlock({
   selected: Set<string>
   onToggle: (itemId: string) => void
 }) {
-  const [open, setOpen] = useState(false)
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 'var(--r-sm)', padding: 'var(--s3)' }}>
-      <button
-        type="button"
-        className="w-full text-left"
-        style={{ fontWeight: 700, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink)' }}
-        onClick={() => setOpen((o) => !o)}
-      >
-        {source.name}
-      </button>
-      {open && (
-        <div className="chips" style={{ marginTop: 'var(--s2)' }}>
-          {source.source_items.map((it) => (
-            <button
-              key={it.id}
-              type="button"
-              onClick={() => onToggle(it.id)}
-              className={'chip' + (selected.has(it.id) ? ' on' : '')}
-              aria-pressed={selected.has(it.id)}
-            >
-              {it.label}
-            </button>
-          ))}
-        </div>
-      )}
+    <div className="ob-provider">
+      <div className="ob-prov-head">
+        <span className="ob-prov-name">{source.name}</span>
+      </div>
+      <div className="chips">
+        {source.source_items.map((it) => (
+          <button
+            key={it.id}
+            type="button"
+            onClick={() => onToggle(it.id)}
+            className={'chip' + (selected.has(it.id) ? ' on' : '')}
+            aria-pressed={selected.has(it.id)}
+          >
+            {it.label}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -150,72 +142,114 @@ export function OnboardingPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col gap-4 p-6">
-      <div style={{ height: 6, width: '100%', overflow: 'hidden', borderRadius: 99, background: 'var(--line)' }}>
-        <div style={{ height: '100%', background: 'var(--accent)', transition: 'width .25s', width: `${((step + 1) / steps.length) * 100}%` }} />
-      </div>
-
-      <h1 style={{ fontSize: 'var(--fz-h2)', fontWeight: 700, letterSpacing: '-.02em', margin: 0 }}>
-        Você tem {current.meta.icon} {current.meta.label}?
-      </h1>
-
-      <div className="chips">
-        <button type="button" className={'chip' + (gate === 'yes' ? ' on' : '')} aria-pressed={gate === 'yes'} onClick={() => setGate(current.category, 'yes')}>
-          Tenho
-        </button>
-        <button type="button" className={'chip' + (gate === 'no' ? ' on' : '')} aria-pressed={gate === 'no'} onClick={() => setGate(current.category, 'no')}>
-          Não tenho
-        </button>
-      </div>
-
-      {gate === 'yes' && (
-        <div className="flex flex-col gap-2">
-          <Input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="buscar provedor…"
-            icon="⌕"
-            ariaLabel="Buscar provedor"
-          />
-          {filteredSources.map((s) => (
-            <SourceBlock key={s.id} source={s} selected={selected} onToggle={(id) => dispatch({ type: 'toggle', itemId: id })} />
-          ))}
-          {filteredSources.length === 0 && (
-            <p className="muted" style={{ fontSize: 14 }}>Nenhum provedor encontrado.</p>
-          )}
-          <div style={{ borderTop: '1px solid var(--line-2)', marginTop: 'var(--s2)', paddingTop: 'var(--s2)' }}>
-            <label className="lbl" htmlFor="other" style={{ margin: '0 0 var(--s2)' }}>
-              Não está na lista? Conta pra gente (Outro)
-            </label>
-            {otherSent ? (
-              <p className="muted" style={{ fontSize: 14 }}>Recebemos! Vamos avaliar incluir essa fonte. ✓</p>
-            ) : (
-              <div style={{ display: 'flex', gap: 'var(--s2)', alignItems: 'center' }}>
-                <label className="input" style={{ flex: 1, marginBottom: 0 }}>
-                  <input id="other" value={otherText} onChange={(e) => setOtherText(e.target.value)} placeholder="ex.: C6 Bank" aria-label="Outro provedor" />
-                </label>
-                <div style={{ width: 'auto' }}>
-                  <Button onClick={submitOther}>Adicionar</Button>
-                </div>
-              </div>
-            )}
+    <div className="ob">
+      <div className="ob-scroll">
+        <div className="ob-card">
+          <div className="ob-brand">
+            <span className="mk" aria-hidden="true" /> Mapa de Benefícios
           </div>
+
+          <div className="ob-progress">
+            <i style={{ width: `${((step + 1) / steps.length) * 100}%` }} />
+          </div>
+          <p className="lbl" style={{ margin: 0 }}>
+            Passo {step + 1} de {steps.length} · sua carteira
+          </p>
+
+          <h1 className="ob-title">
+            Você tem {current.meta.icon} {current.meta.label}?
+          </h1>
+          <p className="ob-sub">Marque o que você usa — a gente revela os benefícios escondidos aí.</p>
+
+          <div className="ob-gate">
+            <button
+              type="button"
+              className={'chip' + (gate === 'yes' ? ' on' : '')}
+              aria-pressed={gate === 'yes'}
+              onClick={() => setGate(current.category, 'yes')}
+            >
+              Tenho
+            </button>
+            <button
+              type="button"
+              className={'chip' + (gate === 'no' ? ' on' : '')}
+              aria-pressed={gate === 'no'}
+              onClick={() => setGate(current.category, 'no')}
+            >
+              Não tenho
+            </button>
+          </div>
+
+          {gate === 'yes' && (
+            <div>
+              <Input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="buscar provedor…"
+                icon="⌕"
+                ariaLabel="Buscar provedor"
+              />
+              <div className="ob-providers">
+                {filteredSources.map((s) => (
+                  <ProviderSection
+                    key={s.id}
+                    source={s}
+                    selected={selected}
+                    onToggle={(id) => dispatch({ type: 'toggle', itemId: id })}
+                  />
+                ))}
+              </div>
+              {filteredSources.length === 0 && (
+                <p className="muted" style={{ fontSize: 14 }}>Nenhum provedor encontrado.</p>
+              )}
+
+              <div className="ob-other">
+                <label className="lbl" htmlFor="other" style={{ margin: '0 0 var(--s2)' }}>
+                  Não está na lista? Conta pra gente (Outro)
+                </label>
+                {otherSent ? (
+                  <p className="muted" style={{ fontSize: 14 }}>Recebemos! Vamos avaliar incluir essa fonte. ✓</p>
+                ) : (
+                  <div className="ob-other-row">
+                    <label className="input" style={{ flex: 1, marginBottom: 0 }}>
+                      <input
+                        id="other"
+                        value={otherText}
+                        onChange={(e) => setOtherText(e.target.value)}
+                        placeholder="ex.: C6 Bank"
+                        aria-label="Outro provedor"
+                      />
+                    </label>
+                    <Button onClick={submitOther}>Adicionar</Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {saveError && (
+            <p style={{ fontSize: 14, color: 'var(--warn)', marginTop: 'var(--s3)' }}>
+              Não foi possível salvar. Tente de novo.
+            </p>
+          )}
         </div>
-      )}
+      </div>
 
-      {saveError && <p style={{ fontSize: 14, color: 'var(--warn)' }}>Não foi possível salvar. Tente de novo.</p>}
-
-      <div className="mt-auto flex gap-2" style={{ alignItems: 'center' }}>
-        {step > 0 && (
-          <Button variant="ghost" onClick={() => setStep((s) => s - 1)}>
-            Voltar
-          </Button>
-        )}
-        <div style={{ marginLeft: 'auto', width: 'auto' }}>
-          <Button onClick={next} disabled={gate === undefined}>
-            {isLast ? 'Concluir' : 'Avançar'}
-          </Button>
+      <div className="ob-foot">
+        <div className="ob-foot-inner">
+          {step > 0 && (
+            <div className="ob-back">
+              <Button variant="ghost" onClick={() => setStep((s) => s - 1)}>
+                Voltar
+              </Button>
+            </div>
+          )}
+          <div className="ob-cta">
+            <Button onClick={next} disabled={gate === undefined}>
+              {isLast ? 'Concluir' : 'Avançar'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
