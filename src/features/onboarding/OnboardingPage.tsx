@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSources } from './useSources'
 import { selectionReducer } from './selection'
 import { useSaveUserSources } from './useSaveUserSources'
+import { useSaveSourceRequest } from './useSaveSourceRequest'
 import { TransitionScreen } from './TransitionScreen'
 import { useSession } from '../auth/AuthProvider'
 import { useUserSources } from './useUserSources'
@@ -10,6 +11,7 @@ import type { CategoryGroup } from './groupSourcesByCategory'
 import type { SourceCategory } from '../benefits/types'
 import type { Source } from './types'
 import { Button } from '../../ui/Button'
+import { Input } from '../../ui/Input'
 
 type Gate = 'yes' | 'no' | undefined
 
@@ -63,6 +65,17 @@ export function OnboardingPage() {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(false)
   const save = useSaveUserSources()
+  const saveRequest = useSaveSourceRequest()
+  const [query, setQuery] = useState('')
+  const [otherText, setOtherText] = useState('')
+  const [otherSent, setOtherSent] = useState(false)
+
+  // resetar busca/Outro ao trocar de etapa
+  useEffect(() => {
+    setQuery('')
+    setOtherText('')
+    setOtherSent(false)
+  }, [step])
 
   // Conjunto de item ids existentes (modo edição) para pré-marcar gates "yes".
   const inited = useRef(false)
@@ -90,6 +103,10 @@ export function OnboardingPage() {
   const isLast = step === steps.length - 1
   const gate = gates[current.category]
 
+  const filteredSources = current.sources.filter((s) =>
+    s.name.toLowerCase().includes(query.trim().toLowerCase()),
+  )
+
   function setGate(cat: SourceCategory, g: Gate) {
     setGates((prev) => ({ ...prev, [cat]: g }))
     // "Não tenho" remove os itens dessa categoria da seleção — senão, no modo
@@ -99,6 +116,18 @@ export function OnboardingPage() {
       const group = steps.find((s) => s.category === cat)
       const catIds = new Set(group?.sources.flatMap((s) => s.source_items.map((it) => it.id)) ?? [])
       dispatch({ type: 'set', ids: [...selected].filter((id) => !catIds.has(id)) })
+    }
+  }
+
+  async function submitOther() {
+    const text = otherText.trim()
+    if (!text) return
+    try {
+      await saveRequest.mutateAsync({ source_category: current.category, text })
+      setOtherSent(true)
+      setOtherText('')
+    } catch {
+      // silencioso; o usuário pode tentar de novo
     }
   }
 
@@ -141,9 +170,37 @@ export function OnboardingPage() {
 
       {gate === 'yes' && (
         <div className="flex flex-col gap-2">
-          {current.sources.map((s) => (
+          <Input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="buscar provedor…"
+            icon="⌕"
+            ariaLabel="Buscar provedor"
+          />
+          {filteredSources.map((s) => (
             <SourceBlock key={s.id} source={s} selected={selected} onToggle={(id) => dispatch({ type: 'toggle', itemId: id })} />
           ))}
+          {filteredSources.length === 0 && (
+            <p className="muted" style={{ fontSize: 14 }}>Nenhum provedor encontrado.</p>
+          )}
+          <div style={{ borderTop: '1px solid var(--line-2)', marginTop: 'var(--s2)', paddingTop: 'var(--s2)' }}>
+            <label className="lbl" htmlFor="other" style={{ margin: '0 0 var(--s2)' }}>
+              Não está na lista? Conta pra gente (Outro)
+            </label>
+            {otherSent ? (
+              <p className="muted" style={{ fontSize: 14 }}>Recebemos! Vamos avaliar incluir essa fonte. ✓</p>
+            ) : (
+              <div style={{ display: 'flex', gap: 'var(--s2)', alignItems: 'center' }}>
+                <label className="input" style={{ flex: 1, marginBottom: 0 }}>
+                  <input id="other" value={otherText} onChange={(e) => setOtherText(e.target.value)} placeholder="ex.: C6 Bank" aria-label="Outro provedor" />
+                </label>
+                <div style={{ width: 'auto' }}>
+                  <Button onClick={submitOther}>Adicionar</Button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

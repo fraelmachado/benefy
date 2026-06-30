@@ -121,4 +121,33 @@ describe('OnboardingPage (wizard híbrido)', () => {
     expect(screen.getByText(/erro ao carregar seus dados/i)).toBeInTheDocument()
     expect(saveMutate).not.toHaveBeenCalled()
   })
+
+  it('busca filtra os provedores por nome dentro da categoria', () => {
+    groups = [{
+      ...bankGroup,
+      sources: [
+        bankGroup.sources[0],
+        { id: 's2', kind: 'card', name: 'Nubank', logo_url: null, sort_order: 2, source_category: 'bank_card',
+          source_items: [{ id: 'i9', label: 'Ultravioleta', sort_order: 1 }] },
+      ],
+    }]
+    renderWithProviders(<OnboardingPage />)
+    fireEvent.click(screen.getByRole('button', { name: /^tenho$/i }))
+    expect(screen.getByText('Itaú')).toBeInTheDocument()
+    expect(screen.getByText('Nubank')).toBeInTheDocument()
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'nub' } })
+    expect(screen.queryByText('Itaú')).not.toBeInTheDocument()
+    expect(screen.getByText('Nubank')).toBeInTheDocument()
+  })
+
+  it('"Outro" grava um pedido com a categoria atual', async () => {
+    renderWithProviders(<OnboardingPage />)
+    fireEvent.click(screen.getByRole('button', { name: /^tenho$/i }))
+    fireEvent.change(screen.getByLabelText(/outro/i), { target: { value: 'C6 Bank' } })
+    fireEvent.click(screen.getByRole('button', { name: /adicionar/i }))
+    await waitFor(() =>
+      expect(requestMutate).toHaveBeenCalledWith({ source_category: 'bank_card', text: 'C6 Bank' }),
+    )
+    expect(await screen.findByText(/recebemos/i)).toBeInTheDocument()
+  })
 })
