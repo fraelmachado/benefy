@@ -1,8 +1,10 @@
 import type { SourceKind } from '../../onboarding/types'
+import type { SourceCategory } from '../../benefits/types'
 
 export interface SourceRow {
   id: string
   kind: SourceKind
+  source_category: SourceCategory
   name: string
   logo_url: string | null
   sort_order: number

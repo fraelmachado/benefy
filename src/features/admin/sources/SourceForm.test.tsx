@@ -13,12 +13,13 @@ describe('SourceForm', () => {
     render(<SourceForm initial={null} onSubmit={onSubmit} onCancel={() => {}} />)
     fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: 'Itaú' } })
     fireEvent.change(screen.getByLabelText(/tipo \(kind\)/i), { target: { value: 'card' } })
+    fireEvent.change(screen.getByLabelText(/categoria/i), { target: { value: 'bank_card' } })
     fireEvent.change(screen.getByLabelText(/connector_type/i), { target: { value: 'PERSONAL_BANK' } })
     fireEvent.click(screen.getByRole('button', { name: /mock-upload/i }))
     fireEvent.click(screen.getByRole('button', { name: /salvar/i }))
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: 'Itaú', kind: 'card', connector_type: 'PERSONAL_BANK',
+        name: 'Itaú', kind: 'card', source_category: 'bank_card', connector_type: 'PERSONAL_BANK',
         logo_url: 'https://cdn.test/logo.png', country: 'BR', active: true,
       }),
     )

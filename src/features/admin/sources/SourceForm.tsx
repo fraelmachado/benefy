@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { ImageUpload } from '../upload/ImageUpload'
 import type { SourceInput, SourceRow } from './types'
 import type { SourceKind } from '../../onboarding/types'
+import type { SourceCategory } from '../../benefits/types'
+import { SOURCE_CATEGORY_META } from '../../onboarding/categoryMeta'
 
 const KINDS: SourceKind[] = ['card', 'carrier', 'loyalty', 'cpf']
 
@@ -16,6 +18,9 @@ export function SourceForm({
 }) {
   const [name, setName] = useState(initial?.name ?? '')
   const [kind, setKind] = useState<SourceKind>(initial?.kind ?? 'card')
+  const [sourceCategory, setSourceCategory] = useState<SourceCategory>(
+    initial?.source_category ?? 'bank_card',
+  )
   const [sortOrder, setSortOrder] = useState(initial?.sort_order ?? 0)
   const [active, setActive] = useState(initial?.active ?? true)
   const [logoUrl, setLogoUrl] = useState<string | null>(initial?.logo_url ?? null)
@@ -30,6 +35,7 @@ export function SourceForm({
     onSubmit({
       name,
       kind,
+      source_category: sourceCategory,
       sort_order: Number(sortOrder) || 0,
       active,
       logo_url: logoUrl,
@@ -49,6 +55,11 @@ export function SourceForm({
       <label className="text-sm font-medium" htmlFor="s-kind">Tipo (kind)</label>
       <select id="s-kind" value={kind} onChange={(e) => setKind(e.target.value as SourceKind)} className="rounded border px-2 py-1">
         {KINDS.map((k) => <option key={k} value={k}>{k}</option>)}
+      </select>
+
+      <label className="text-sm font-medium" htmlFor="s-cat">Categoria</label>
+      <select id="s-cat" value={sourceCategory} onChange={(e) => setSourceCategory(e.target.value as SourceCategory)} className="rounded border px-2 py-1">
+        {SOURCE_CATEGORY_META.map((c) => <option key={c.key} value={c.key}>{c.icon} {c.label}</option>)}
       </select>
 
       <label className="text-sm font-medium" htmlFor="s-order">Ordem</label>

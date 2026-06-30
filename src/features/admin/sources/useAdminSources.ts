@@ -3,7 +3,7 @@ import { supabase } from '../../../lib/supabase'
 import type { SourceInput, SourceRow } from './types'
 
 const SELECT =
-  'id, kind, name, logo_url, sort_order, active, connector_type, pluggy_connector_id, institution_url, primary_color, country, source_items(id, source_id, label, sort_order, card_brand, card_level, pluggy_product)'
+  'id, kind, source_category, name, logo_url, sort_order, active, connector_type, pluggy_connector_id, institution_url, primary_color, country, source_items(id, source_id, label, sort_order, card_brand, card_level, pluggy_product)'
 
 export function useAdminSources() {
   return useQuery({
