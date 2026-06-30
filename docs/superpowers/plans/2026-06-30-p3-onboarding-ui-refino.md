@@ -55,7 +55,10 @@ No `src/features/onboarding/OnboardingPage.test.tsx`, substituir o **primeiro** 
     // provedores escondidos até "Tenho"
     expect(screen.queryByText('Itaú')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /^tenho$/i }))
-    // variante visível imediatamente (sem expandir o provedor)
+    // fim do accordion: o nome do provedor NÃO é mais um botão de expandir,
+    // e a variante já está visível inline (sem clicar para abrir)
+    expect(screen.getByText('Itaú')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Itaú' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /black/i }))
     fireEvent.click(screen.getByRole('button', { name: /avançar/i }))
     // passo 2: fidelidade — diz "Não tenho" e conclui
@@ -82,8 +85,8 @@ Expected: FAIL no 1º teste — `getByText(/Passo 1 de 2/i)` não existe (a pág
    Shell com scroll + CTA fixo na base; card central no desktop.
    Prefixo .ob- para não colidir com as classes do ds.css.
    ============================================================ */
-.ob { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
-.ob-scroll { flex: 1; overflow-y: auto; }
+.ob { min-height: 100dvh; display: flex; flex-direction: column; background: var(--bg); }
+.ob-scroll { flex: 1; min-height: 0; overflow-y: auto; } /* min-height:0 deixa o flex child rolar */
 .ob-card { width: 100%; max-width: 480px; margin: 0 auto; padding: var(--s6) var(--s5) var(--s6); }
 
 .ob-brand { display: flex; align-items: center; gap: var(--s2); font-weight: 800; font-size: var(--fz-title); letter-spacing: -.02em; margin-bottom: var(--s5); }
@@ -108,10 +111,13 @@ Expected: FAIL no 1º teste — `getByText(/Passo 1 de 2/i)` não existe (a pág
 .ob-other-row { display: flex; gap: var(--s2); align-items: center; }
 .ob-other-row .btn { width: auto; margin-bottom: 0; }
 
+/* O footer é o ÚLTIMO filho do shell flex (100dvh) e o scroll vive em .ob-scroll,
+   então o CTA fica preso à base SEM sobrepor conteúdo — robusto, sem position:sticky
+   (que falha com teclado mobile / viewports baixos / listas longas). */
 .ob-foot {
-  position: sticky; bottom: 0; left: 0; right: 0;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(12px); border-top: 1px solid var(--line);
+  flex: none;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
   padding: var(--s3) var(--s5) calc(var(--s3) + env(safe-area-inset-bottom));
 }
 .ob-foot-inner { width: 100%; max-width: 480px; margin: 0 auto; display: flex; gap: var(--s3); align-items: center; }
@@ -120,14 +126,16 @@ Expected: FAIL no 1º teste — `getByText(/Passo 1 de 2/i)` não existe (a pág
 .ob-cta { flex: 1; }
 
 @media (min-width: 720px) {
-  /* desktop: card central com respiro vertical e moldura suave */
+  /* desktop: card central com respiro; o scroll deixa de ser a área rolável
+     (a página rola normalmente) e o CTA fica ABAIXO do card, alinhado à mesma
+     largura (decisão: fora do card, para não reestruturar o DOM). */
   .ob { justify-content: center; padding: var(--s8) var(--s4); }
-  .ob-scroll { flex: none; overflow: visible; }
+  .ob-scroll { flex: none; min-height: auto; overflow: visible; }
   .ob-card {
     max-width: 520px; background: var(--surface); border: 1px solid var(--line);
     border-radius: var(--radius); box-shadow: var(--shadow); padding: var(--s8);
   }
-  .ob-foot { position: static; background: transparent; backdrop-filter: none; border-top: 0; padding: 0; margin-top: var(--s5); }
+  .ob-foot { background: transparent; border-top: 0; padding: 0; margin-top: var(--s5); }
   .ob-foot-inner { max-width: 520px; }
 }
 ```
@@ -427,21 +435,30 @@ git commit -m "fix(p3): reskin do wizard de onboarding (header, chips inline, CT
 
 ---
 
-## Task 2: Verificação visual
+## Task 2: Verificação visual (gate por screenshots)
+
+Como jsdom não computa layout (sticky/card/posição não são testáveis em vitest), o layout é validado aqui por **captura de tela**, e isto é um **gate** — não um checklist opcional. Use chrome-devtools MCP (ou outro navegador headless) e **anexe os screenshots**.
 
 **Files:** nenhum (verificação).
 
-- [ ] **Step 1: Subir o app e conferir o wizard**
+- [ ] **Step 1: Capturar e conferir o wizard em 4 combinações + lista longa**
 
-`npm run dev`; abrir `/onboarding` (sessão anônima). Conferir, em **mobile e desktop**, **claro e escuro**:
-- header com logo + barra de progresso com respiro + eyebrow "Passo 1 de N · sua carteira" + título + subtítulo;
+`npm run dev`; abrir `/onboarding` (sessão anônima). Capturar e inspecionar:
+1. **Mobile (390px) claro** — gate inicial (sem responder) e estado "Tenho".
+2. **Mobile (390px) escuro** — idem (alternar tema via Perfil ou `localStorage mb-theme=dark`).
+3. **Desktop (1280px) claro** — card central.
+4. **Desktop (1280px) escuro** — card central.
+5. **Lista longa** (≥10 provedores): com o seed de dev OU mockando muitos provedores, confirmar que ao rolar **o CTA fixo na base NÃO cobre o último provedor / o "Outro"**, e que o scroll fica contido na área de conteúdo.
+
+Critérios de aprovação (cada um verificável na imagem):
+- header com logo + barra de progresso com respiro + eyebrow "Passo X de N · sua carteira" + título + subtítulo;
 - gate "Tenho/Não tenho" maiores;
 - ao "Tenho": busca + provedores como seções compactas com **variantes (chips) já visíveis** (sem expandir);
-- "Outro" com input + "Adicionar" (auto width) e confirmação "Recebemos!";
-- **CTA fixo na base** (Avançar/Concluir largo, desabilitado até responder; Voltar ghost quando há passo anterior);
-- desktop: conteúdo num **card central** com respiro (sem oceano vazio).
+- "Outro" com input + "Adicionar" (largura automática) e confirmação "Recebemos!";
+- **CTA na base** (Avançar/Concluir largo, desabilitado até responder; Voltar ghost quando há passo anterior) **sem cobrir conteúdo**;
+- desktop: conteúdo num **card central** com respiro (sem oceano vazio), CTA logo abaixo do card alinhado à largura.
 
-> Nota: com o seed atual (só `bank_card`) a app mostra **1 passo** — o multi-step (Avançar/Voltar, "Passo X de N") é validado pelos testes. Para ver o multi-step no navegador, é preciso seed de outra categoria (P4 / seed de dev — fora do escopo deste refino).
+> Nota multi-step: com o seed real (só `bank_card`) a app mostra **1 passo**; o fluxo multi-step (Avançar/Voltar, "Passo X de N") é coberto pelos testes (Task 1). Para exercitar multi-step e a lista longa no navegador, peça ao controlador um **seed de dev** com ≥2 categorias e vários provedores (fora do escopo de código deste plano) ou mocke `useSources` numa página de teste. Se nenhum estiver disponível, registre no relatório que o item 5 (lista longa) ficou validado apenas por inspeção do CSS + 1 categoria.
 
 - [ ] **Step 2: Commit (se houver ajuste fino de CSS)**
 
@@ -454,10 +471,11 @@ git add -A && git commit -m "chore(p3): ajustes finais do reskin do onboarding"
 ## Self-Review (cobertura)
 
 - **Header (logo+progresso+eyebrow+título+subtítulo)** → Task 1 (marcação + `.ob-brand/.ob-progress/.lbl/.ob-title/.ob-sub`) + teste do eyebrow "Passo X de N".
-- **Provedores com chips inline (fim do accordion)** → Task 1 (`ProviderSection` + `.ob-provider`) + teste seleciona a variante sem expandir.
-- **CTA fixo/forte na base + Voltar** → Task 1 (`.ob-foot/.ob-cta/.ob-back`); comportamento `disabled`/`next()` inalterado.
-- **Card central no desktop** → Task 1 (media query `.ob-card`/`.ob-foot`).
+- **Provedores com chips inline (fim do accordion)** → Task 1 (`ProviderSection` + `.ob-provider`); travado por teste estrutural: o nome do provedor **não é mais um botão** (`queryByRole('button', {name:'Itaú'})` ausente) e a variante é clicável sem expandir.
+- **CTA na base + Voltar** → Task 1 (`.ob-foot/.ob-cta/.ob-back`), app-shell flex robusto (footer como último filho, sem `position:sticky`); comportamento `disabled`/`next()` inalterado. Layout validado por screenshots na Task 2 (jsdom não computa CSS).
+- **Card central no desktop** → Task 1 (media query `.ob-card`/`.ob-foot`); validado por screenshots na Task 2.
 - **Comportamento inalterado** (gate obrigatório, "Não tenho" limpa seleção, edição, persistência, "Outro") → hooks/funções idênticos; testes existentes preservados.
-- **Gate de build** em cada task; **136 testes** verdes garantidos no Step 7.
+- **Gate de build** em cada task; **136 testes** verdes garantidos no Step 7. **Gate visual** (screenshots, mobile/desktop, claro/escuro, lista longa) na Task 2.
+- **Achados da review adversarial Codex aplicados:** teste estrutural anti-accordion (não só texto/clique); app-shell flex robusto em vez de `position:sticky` (`100dvh` + `min-height:0`, footer não sobrepõe conteúdo); Task 2 vira gate de screenshots cobrindo lista longa.
 - **Fora de escopo:** popular outras categorias/seed de dev (P4); refino das outras telas (Painel/Detalhe/Busca/Perfil) — só o wizard agora.
 ```
